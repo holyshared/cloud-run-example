@@ -22,7 +22,8 @@ module "project-factory" {
   folder_id         = var.folder_id
 
   activate_apis = [
-    "run.googleapis.com"
+    "run.googleapis.com",
+    "domains.googleapis.com"
   ]
 }
 
@@ -55,9 +56,23 @@ data "google_iam_policy" "noauth" {
 }
 
 resource "google_cloud_run_service_iam_policy" "noauth" {
-  location    = google_cloud_run_service.default.location
-  project     = google_cloud_run_service.default.project
-  service     = google_cloud_run_service.default.name
+  location = google_cloud_run_service.default.location
+  project  = google_cloud_run_service.default.project
+  service  = google_cloud_run_service.default.name
 
   policy_data = data.google_iam_policy.noauth.policy_data
+}
+
+resource "google_cloud_run_domain_mapping" "default" {
+  location = google_cloud_run_service.default.location
+  project  = google_cloud_run_service.default.project
+  name     = var.domain_name
+
+  metadata {
+    namespace = module.project-factory.project_id
+  }
+
+  spec {
+    route_name = google_cloud_run_service.default.name
+  }
 }
