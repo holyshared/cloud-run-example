@@ -103,7 +103,7 @@ resource "google_cloudbuild_trigger" "cloud_run_example_trigger" {
 
   substitutions = {
     _REGION=var.location
-    _PORT=var.port
+    _IMAGE_NAME=var.image_name
   }
 
   filename = "cloudbuild.yml"
