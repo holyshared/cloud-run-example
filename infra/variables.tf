@@ -19,6 +19,11 @@ variable "domain_name" {
   type = string
 }
 
+variable "env" {
+  type = string
+  default = "dev"
+}
+
 variable "image_name" {
   type = string
 }

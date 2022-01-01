@@ -46,6 +46,10 @@ resource "google_cloud_run_service" "default" {
     spec {
       containers {
         image = "gcr.io/clound-run-example-b1f8/cloud-run-example:latest"
+        env {
+          name = "NODE_ENV"
+          value = var.env
+        }
       }
     }
   }
