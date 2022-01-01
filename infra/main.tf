@@ -23,11 +23,18 @@ module "project-factory" {
 
   activate_apis = [
     "iam.googleapis.com",
+    "secretmanager.googleapis.com",
     "run.googleapis.com",
     "domains.googleapis.com",
     "logging.googleapis.com",
     "cloudbuild.googleapis.com"
   ]
+}
+
+resource "google_project_iam_member" "secretmanager_secret_accessor" {
+  project  = module.project-factory.project_id
+  role    = "roles/secretmanager.secretAccessor"
+  member  = "serviceAccount:${module.project-factory.project_number}@cloudbuild.gserviceaccount.com"
 }
 
 resource "google_cloud_run_service" "default" {
