@@ -45,7 +45,7 @@ resource "google_cloud_run_service" "default" {
   template {
     spec {
       containers {
-        image = "us-docker.pkg.dev/cloudrun/container/hello"
+        image = "gcr.io/clound-run-example-b1f8/cloud-run-example:latest"
       }
     }
   }
