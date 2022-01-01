@@ -1,13 +1,13 @@
 terraform {
   required_providers {
-    google = {
-      source  = "hashicorp/google"
+    google-beta = {
+      source = "hashicorp/google-beta"
       version = "3.90.1"
     }
   }
 }
 
-provider "google" {
+provider "google-beta" {
   region = var.location
 }
 
@@ -37,10 +37,49 @@ resource "google_project_iam_member" "secretmanager_secret_accessor" {
   member  = "serviceAccount:${module.project-factory.project_number}@cloudbuild.gserviceaccount.com"
 }
 
+/**
+ * Secret Manager
+ */
+resource "google_secret_manager_secret" "database_password" {
+  project  = module.project-factory.project_id
+  provider = google-beta
+
+  secret_id = "database_password"
+  replication {
+    automatic = true
+  }
+}
+
+resource "google_secret_manager_secret_version" "database_password_version_data" {
+  provider = google-beta
+
+  secret = google_secret_manager_secret.database_password.name
+  secret_data = var.database_password
+}
+
+resource "google_secret_manager_secret_iam_member" "database_password_access" {
+  project  = module.project-factory.project_id
+
+  secret_id = google_secret_manager_secret.database_password.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${module.project-factory.project_number}-compute@developer.gserviceaccount.com"
+  depends_on = [google_secret_manager_secret.database_password]
+}
+
+
+
 resource "google_cloud_run_service" "default" {
   name     = "cloudrun-srv"
   location = var.location
   project  = module.project-factory.project_id
+
+  provider = google-beta
+
+  metadata {
+    annotations = {
+      "run.googleapis.com/launch-stage" = "BETA"
+    }
+  }
 
   template {
     spec {
@@ -50,6 +89,15 @@ resource "google_cloud_run_service" "default" {
           name = "NODE_ENV"
           value = var.env
         }
+        env {
+          name = "DATABASE_PASSWORD"
+          value_from {
+            secret_key_ref {
+              name = google_secret_manager_secret.database_password.secret_id
+              key = "latest"
+            }
+          }
+        }
       }
     }
   }
@@ -58,6 +106,8 @@ resource "google_cloud_run_service" "default" {
     percent         = 100
     latest_revision = true
   }
+
+  depends_on = [google_secret_manager_secret_version.database_password_version_data]
 }
 
 data "google_iam_policy" "noauth" {
@@ -70,6 +120,8 @@ data "google_iam_policy" "noauth" {
 }
 
 resource "google_cloud_run_service_iam_policy" "noauth" {
+  provider = google-beta
+
   location = google_cloud_run_service.default.location
   project  = google_cloud_run_service.default.project
   service  = google_cloud_run_service.default.name
@@ -78,6 +130,8 @@ resource "google_cloud_run_service_iam_policy" "noauth" {
 }
 
 resource "google_cloud_run_domain_mapping" "default" {
+  provider = google-beta
+
   location = google_cloud_run_service.default.location
   project  = google_cloud_run_service.default.project
   name     = var.domain_name

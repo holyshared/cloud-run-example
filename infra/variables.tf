@@ -27,3 +27,7 @@ variable "env" {
 variable "image_name" {
   type = string
 }
+
+variable "database_password" {
+  type = string
+}
