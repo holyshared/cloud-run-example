@@ -22,8 +22,11 @@ module "project-factory" {
   folder_id         = var.folder_id
 
   activate_apis = [
+    "iam.googleapis.com",
     "run.googleapis.com",
-    "domains.googleapis.com"
+    "domains.googleapis.com",
+    "logging.googleapis.com",
+    "cloudbuild.googleapis.com"
   ]
 }
 
@@ -75,4 +78,26 @@ resource "google_cloud_run_domain_mapping" "default" {
   spec {
     route_name = google_cloud_run_service.default.name
   }
+}
+
+resource "google_cloudbuild_trigger" "cloud_run_example_trigger" {
+  name = "cloud-run-example"
+  project = module.project-factory.project_id
+
+  github {
+    name  = "cloud-run-example"
+    owner = "holyshared"
+
+    push {
+      branch       = "main"
+      invert_regex = false
+    }
+  }
+
+  substitutions = {
+    _REGION=var.location
+    _PORT=var.port
+  }
+
+  filename = "cloudbuild.yml"
 }
