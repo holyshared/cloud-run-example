@@ -18,3 +18,7 @@ variable "folder_id" {
 variable "domain_name" {
   type = string
 }
+
+variable "port" {
+  type = number
+}
