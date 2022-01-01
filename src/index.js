@@ -11,4 +11,4 @@ app.use((err, req, res, next) => {
   res.send("Internal server error")
 })
 
-app.listen(process.env.POST || 3000)
+app.listen(process.env.POST || 8080)
