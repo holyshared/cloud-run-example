@@ -31,3 +31,5 @@ override.tf.json
 .envrc
 
 .terraform.lock.hcl
+
+node_modules
