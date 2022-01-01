@@ -59,6 +59,7 @@ resource "google_secret_manager_secret_version" "database_password_version_data"
 
 resource "google_secret_manager_secret_iam_member" "database_password_access" {
   project  = module.project-factory.project_id
+  provider = google-beta
 
   secret_id = google_secret_manager_secret.database_password.id
   role      = "roles/secretmanager.secretAccessor"
@@ -105,6 +106,14 @@ resource "google_cloud_run_service" "default" {
   traffic {
     percent         = 100
     latest_revision = true
+  }
+
+  autogenerate_revision_name = true
+
+  lifecycle {
+    ignore_changes = [
+      metadata.0.annotations,
+    ]
   }
 
   depends_on = [google_secret_manager_secret_version.database_password_version_data]
