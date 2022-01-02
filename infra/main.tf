@@ -85,11 +85,12 @@ resource "google_cloud_run_service" "default" {
   template {
     spec {
       containers {
-        image = "gcr.io/clound-run-example-b1f8/cloud-run-example:latest"
+        image = "gcr.io/${module.project-factory.project_id}/cloud-run-example:latest"
         env {
           name = "NODE_ENV"
           value = var.env
         }
+        /*
         env {
           name = "DATABASE_PASSWORD"
           value_from {
@@ -99,6 +100,7 @@ resource "google_cloud_run_service" "default" {
             }
           }
         }
+        */
       }
     }
   }
@@ -116,7 +118,10 @@ resource "google_cloud_run_service" "default" {
     ]
   }
 
-  depends_on = [google_secret_manager_secret_version.database_password_version_data]
+  depends_on = [
+    google_secret_manager_secret_version.database_password_version_data,
+    google_secret_manager_secret_iam_member.database_password_access
+  ]
 }
 
 data "google_iam_policy" "noauth" {
