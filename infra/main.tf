@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     google-beta = {
-      source = "hashicorp/google-beta"
+      source  = "hashicorp/google-beta"
       version = "3.90.1"
     }
   }
@@ -29,10 +29,12 @@ module "project-factory" {
     "logging.googleapis.com",
     "cloudbuild.googleapis.com"
   ]
+
+  default_service_account = "keep"
 }
 
 resource "google_project_iam_member" "secretmanager_secret_accessor" {
-  project  = module.project-factory.project_id
+  project = module.project-factory.project_id
   role    = "roles/secretmanager.secretAccessor"
   member  = "serviceAccount:${module.project-factory.project_number}@cloudbuild.gserviceaccount.com"
 }
@@ -53,7 +55,7 @@ resource "google_secret_manager_secret" "database_password" {
 resource "google_secret_manager_secret_version" "database_password_version_data" {
   provider = google-beta
 
-  secret = google_secret_manager_secret.database_password.name
+  secret      = google_secret_manager_secret.database_password.name
   secret_data = var.database_password
 }
 
@@ -61,9 +63,9 @@ resource "google_secret_manager_secret_iam_member" "database_password_access" {
   project  = module.project-factory.project_id
   provider = google-beta
 
-  secret_id = google_secret_manager_secret.database_password.id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${module.project-factory.project_number}-compute@developer.gserviceaccount.com"
+  secret_id  = google_secret_manager_secret.database_password.id
+  role       = "roles/secretmanager.secretAccessor"
+  member     = "serviceAccount:${module.project-factory.project_number}-compute@developer.gserviceaccount.com"
   depends_on = [google_secret_manager_secret.database_password]
 }
 
@@ -87,20 +89,18 @@ resource "google_cloud_run_service" "default" {
       containers {
         image = "gcr.io/${module.project-factory.project_id}/cloud-run-example:latest"
         env {
-          name = "NODE_ENV"
+          name  = "NODE_ENV"
           value = var.env
         }
-        /*
         env {
           name = "DATABASE_PASSWORD"
           value_from {
             secret_key_ref {
               name = google_secret_manager_secret.database_password.secret_id
-              key = "latest"
+              key  = "latest"
             }
           }
         }
-        */
       }
     }
   }
@@ -119,8 +119,7 @@ resource "google_cloud_run_service" "default" {
   }
 
   depends_on = [
-    google_secret_manager_secret_version.database_password_version_data,
-    google_secret_manager_secret_iam_member.database_password_access
+    google_secret_manager_secret_version.database_password_version_data
   ]
 }
 
@@ -160,7 +159,7 @@ resource "google_cloud_run_domain_mapping" "default" {
 }
 
 resource "google_cloudbuild_trigger" "cloud_run_example_trigger" {
-  name = "cloud-run-example"
+  name    = "cloud-run-example"
   project = module.project-factory.project_id
 
   github {
@@ -174,8 +173,8 @@ resource "google_cloudbuild_trigger" "cloud_run_example_trigger" {
   }
 
   substitutions = {
-    _REGION=var.location
-    _IMAGE_NAME=var.image_name
+    _REGION     = var.location
+    _IMAGE_NAME = var.image_name
   }
 
   filename = "cloudbuild.yml"

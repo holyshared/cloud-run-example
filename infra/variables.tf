@@ -20,7 +20,7 @@ variable "domain_name" {
 }
 
 variable "env" {
-  type = string
+  type    = string
   default = "dev"
 }
 
