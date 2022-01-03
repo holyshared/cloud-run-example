@@ -24,7 +24,7 @@ variable "env" {
   default = "dev"
 }
 
-variable "image_name" {
+variable "service_name" {
   type = string
 }
 

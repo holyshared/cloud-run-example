@@ -72,7 +72,7 @@ resource "google_secret_manager_secret_iam_member" "database_password_access" {
 
 
 resource "google_cloud_run_service" "default" {
-  name     = "cloudrun-srv"
+  name     = var.service_name
   location = var.location
   project  = module.project-factory.project_id
 
@@ -87,7 +87,7 @@ resource "google_cloud_run_service" "default" {
   template {
     spec {
       containers {
-        image = "gcr.io/${module.project-factory.project_id}/cloud-run-example:latest"
+        image = "asia.gcr.io/${module.project-factory.project_id}/cloud-run-example/${var.service_name}:latest"
         env {
           name  = "NODE_ENV"
           value = var.env
@@ -173,8 +173,8 @@ resource "google_cloudbuild_trigger" "cloud_run_example_trigger" {
   }
 
   substitutions = {
-    _REGION     = var.location
-    _IMAGE_NAME = var.image_name
+    _REGION       = var.location
+    _SERVICE_NAME = var.service_name
   }
 
   filename = "cloudbuild.yml"
