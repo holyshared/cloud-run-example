@@ -1,6 +1,6 @@
 steps:
 - name: 'gcr.io/kaniko-project/executor:latest'
   args:
-  - --destination=gcr.io/$PROJECT_ID/${_IMAGE_NAME}
+  - --destination=asia.gcr.io/$PROJECT_ID/$REPO_NAME/${_SERVICE_NAME}
   - --cache=true
   - --cache-ttl=1h
